@@ -1,8 +1,8 @@
 require File.expand_path('authentication_header', File.dirname(__FILE__))
 
 module Marketo
-    
-  def self.new_client(access_key, secret_key, api_version = '2.0', endpoint = "https://na-q.marketo.com/soap/mktows/2_0")
+
+  def self.new_client(access_key, secret_key, endpoint, api_version = '2.0')
 
     api_version = api_version.sub(".", "_")
     client = Savon::Client.new do
@@ -151,7 +151,7 @@ module Marketo
         return nil
       end
     end
-      
+
     def sync_multi_lead_records(lead_records)
       send_records = []
       begin
@@ -160,18 +160,18 @@ module Marketo
           lead_record.each_attribute_pair do |name, value|
             attributes << {:attr_name => name, :attr_type => 'string', :attr_value => value}
           end
-            
-          send_records << {:lead_record => 
-            { "Email" => lead_record.email, 
-              :lead_attribute_list => 
+
+          send_records << {:lead_record =>
+            { "Email" => lead_record.email,
+              :lead_attribute_list =>
                 { :attribute => attributes }
             }
           }
         end
-          
+
         response = send_request("ns1:paramsSyncMultipleLeads", {
               :lead_record_list => send_records }) # an array of lead records
-          
+
         return response
       rescue  => e
         @logger.warn(e) if @logger
@@ -220,7 +220,7 @@ module Marketo
 
         # lead_record may be a hash or an array of hashes
         return LeadRecord.from_hash(lead_record) if lead_record.kind_of?(Hash)
-          
+
         leads = []
         lead_record.each do |savon_hash|
           leads << LeadRecord.from_hash(savon_hash)
